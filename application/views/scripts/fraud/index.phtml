@@ -1,0 +1,58 @@
+<?php
+
+$geshi = new GeSHi();
+			$geshi->set_language('matlab');
+			$geshi->enable_line_numbers(GESHI_FANCY_LINE_NUMBERS);
+			
+?>
+
+<h1>Fraude</h1>
+
+<p>Voer een query in om submissions naast elkaar te zien.</p>
+
+<form action="" method="post">
+	Opdracht: <select name="course_identifier">
+	<?php foreach ($this->courses as $urlYear => $options) { ?>
+			<?php foreach ($options as $urlCourse => $options2) { ?>
+						<?php foreach ($options2->weeks as $urlWeek => $options3) { ?>
+									<?php foreach ($options3->assignments as $urlAssignment => $options4) { ?>
+									<option <?php echo (@$_POST['course_identifier'] == $urlYear . '_' . $urlCourse . '_' . $urlWeek . '_' . $urlAssignment)? 'selected="selected"' : ''; ?> value="<?php echo $urlYear . '_' . $urlCourse . '_' . $urlWeek . '_' . $urlAssignment; ?>"><?php echo  $urlYear . ' ' . $urlWeek . ' ' . $options4; ?></option>
+									<?php } ?>
+						<?php } ?>
+			<?php } ?>
+	<?php } ?>
+	</select><br />
+	
+	Submission id's: <input type="text" name="submission_ids" value="<?php echo @$_POST['submission_ids']; ?>"> (separate with comma)<br />
+	Student id's: <input type="text" name="student_ids" value="<?php echo @$_POST['student_ids']; ?>"> (separate with comma)<br />
+	<input type="checkbox" name="hidecomments" value="true"> Hide comments
+	<input type="submit" name="" class="btn btn-large btn-primary" value="Weergeven">
+</form>
+
+
+<?php if (isset($this->result)) { ?>
+</div>
+
+<div class="row-fluid">
+
+	<?php foreach ($this->result->response->docs as $doc) { ?>
+		<div class="span3">
+			<h2>#<?php echo $doc->id; ?></h2>
+			<?php foreach ($doc as $r => $val) { ?>
+				<?php if (strpos($r, '_t') === false) { continue; } ?>
+				<?php if (isset($_POST['hidecomments'])) { ?>
+			<?php $geshi->set_source(trim(preg_replace('/\%(.*)(\r?\n)/', '', $val . "\n"))); ?>
+			<?php } else { ?>
+			<?php $geshi->set_source(trim($val . "\n")); ?>	
+			<?php } ?>
+			<?php } ?>
+	<?php echo $geshi->parse_code(); ?>	
+		</div>
+	<?php } ?>
+	
+</div>
+
+	<div>
+	
+<?php } ?>
+

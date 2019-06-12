@@ -1,0 +1,222 @@
+<?php
+
+$geshi = new GeSHi();
+			$geshi->set_language('matlab');
+			$geshi->enable_line_numbers(GESHI_FANCY_LINE_NUMBERS);
+			
+			$total = 0;
+			foreach ($this->submissions->{'by-submission'} as $submissionId => $submission) { $total++; }
+			$students = 0;
+			foreach ($this->submissions->{'by-student'} as $student) { $students++; }
+			
+			$nextId = $prevListId = $prevId = 0;
+			
+			$average = 0;
+			$i = 0;
+			$y = 0;
+			
+			foreach ($this->grades as $id => $grade) {
+				if ($id == 'test') {continue;}
+				$i++;
+				$y++;
+				$average += $grade;
+				
+				if (count($this->submissions->{'by-submission'}->{$id}->students) == 2) {
+					$average += $grade;
+					$i++;
+				}
+			}
+			
+			$totalGrade = $average;
+			$average = round($average/$students, 3);
+			
+			?>
+			
+
+
+<script type="text/javascript" src="/js/diff_match_patch.js"></script>
+<script type="text/javascript">
+	
+	var dmp = new diff_match_patch();
+	
+	function getDiff(text1, text2) {
+		var d = dmp.diff_main(text1, text2);
+		//dmp.diff_cleanupSemantic(d);
+		dmp.Diff_EditCost = 4;
+		dmp.Diff_Timeout = 5;
+		dmp.diff_cleanupEfficiency(d);
+		var ds = dmp.diff_prettyHtml(d);
+		
+		return ds;
+	}
+	
+	
+	/*function getDiff(text1, text2) {
+  var dmp = new diff_match_patch();
+  var a = dmp.diff_linesToChars_(text1, text2);
+  var lineText1 = a[0];
+  var lineText2 = a[1];
+  var lineArray = a[2];
+
+  var diffs = dmp.diff_main(lineText1, lineText2, false);
+ dmp.diff_cleanupSemantic(diffs);
+  dmp.diff_charsToLines_(diffs, lineArray);
+  return diffs;
+}*/
+	
+</script>
+
+<div class="row-fluid">
+        <div class="span3">
+          <div class="well sidebar-nav">
+            <ul class="nav nav-list">
+            	<li><a href="<?php echo $this->url(array('submissionId' => null)); ?>">Summary</a></li>
+            	<li><?php echo $total; ?> submissions total</li>
+            	<li><?php echo $students; ?> students total</li>
+            	<li><?php echo $average; ?> marks students average</li>
+            	<li><?php echo $totalGrade; ?> marks students sum</li>
+            	<li><?php echo $y; ?>/<?php echo $total; ?> = <?php echo round($y/$total*100); ?>% evaluated</li>
+            	<?php foreach ($this->submissions->{'by-submission'} as $submissionId => $submission) { ?>
+		<?php if (isset($this->submissionId) && $this->submissionId == $prevListId) { $nextId = $submissionId; } ?>
+              <li><a href="<?php echo $this->url(array('submissionId' => $submissionId)); ?>">
+	              	<?php if ($submission->status == 'passed') { ?>
+	              	<i class="icon-ok"></i>
+	              	<?php } else { ?>
+	              	<i class="icon-remove"></i>	
+	              	<?php } ?>
+	              	 <span class="badge badge-warning"><?php echo explode('.', $submissionId)[1]; ?></span>
+	              	 
+	              	 <span class="badge badge <?php echo (isset($this->grades->{$submissionId})) ? 'badge-success' : ''; ?>" style="float: right;"><?php echo (isset($this->grades->{$submissionId})) ? $this->grades->{$submissionId} : '-'; ?></span>
+              	 </a></li>
+              <?php $prevListId = $submissionId; } ?>
+            </ul>
+          </div><!--/.well -->
+        </div><!--/span-->
+        <div class="span9">
+        	
+        <?php if (isset($this->submissionId)) { ?>
+        	<?php if ($this->success) { ?>
+        	<div class="alert alert-success">Saved!</div>
+        	<?php } ?>
+        	
+        	<form action="" method="post">
+        	
+        	    <div class="btn-group" style="float: left;">
+    <button class="btn btn-large <?php echo (isset($this->grades->{$this->submissionId}) && $this->grades->{$this->submissionId} == '-1') ? 'btn-success' : ''; ?>">-1</button>
+    <button class="btn btn-large <?php echo (!isset($this->grades->{$this->submissionId}) || $this->grades->{$this->submissionId} == '0') ? 'btn-primary' : ''; ?>">0</button>
+    <button class="btn btn-large <?php echo (isset($this->grades->{$this->submissionId}) && $this->grades->{$this->submissionId} == '1') ? 'btn-success' : ''; ?>">1</button>
+    <button class="btn btn-large <?php echo (isset($this->grades->{$this->submissionId}) && $this->grades->{$this->submissionId} == '3') ? 'btn-success' : ''; ?>">3</button>
+    <button class="btn btn-large <?php echo (isset($this->grades->{$this->submissionId}) && $this->grades->{$this->submissionId} == '6') ? 'btn-success' : ''; ?>">6</button>
+    <button class="btn btn-large <?php echo (isset($this->grades->{$this->submissionId}) && $this->grades->{$this->submissionId} == '8') ? 'btn-success' : ''; ?>">8</button>
+    <button class="btn btn-large <?php echo (isset($this->grades->{$this->submissionId}) && $this->grades->{$this->submissionId} == '10') ? 'btn-success' : ''; ?>">10</button>
+    <input type="submit" class="btn btn-large btn-inverse" value="Opslaan" />
+    </div>
+
+<a href="<?php echo $this->url(array('submissionId' => $nextId)); ?>" class="btn btn-large btn-warning" style="float: right;">&raquo; Next (<?php echo $nextId; ?>)</a>
+
+        <div style="clear: both" ></div>
+
+        <input type="hidden" name="grade" id="grade" value="<?php echo (!isset($this->grades->{$this->submissionId})) ? '0' : $this->grades->{$this->submissionId}; ?>" />
+        
+        <h5>Commentaar:</h5>
+        <textarea name="comment" style="width: 99%; height: 70px;"><?php echo (isset($this->comments->{$this->submissionId})) ? htmlentities($this->comments->{$this->submissionId}) : ''; ?></textarea>
+                
+        </form>
+        
+        <script type="text/javascript">
+        	$('button').click(function(e) {
+        		e.preventDefault();
+        		
+        		$('button').removeClass('btn-primary').removeClass('btn-success');
+        		
+        		$(this).addClass('btn-success');
+        		$('#grade').val($(this).html());
+        		
+        		return false;
+        	});
+        	
+        </script>
+        
+        
+        <h3>
+<?php if ($this->submission->status == 'passed') { ?>
+	              	<i class="icon-ok"></i>
+	              	<?php } else { ?>
+	              	<i class="icon-remove"></i>	<!-- <a href="http://www.wing.rug.nl/Justitia/admin_view_submission.php?rejudge=1&submissionid=<?php echo $this->submissionId; ?>" target="_blank" class="btn btn-primary">Rejudge</a> -->
+	              	<?php } ?>
+	      			        	
+#<?php echo $this->submissionId; ?> <em>(<?php echo implode(', ', $this->students); ?>)</em>
+</h3>
+        	
+          <div class="hero-unit">
+          	<div class="row-fluid">
+          	<?php foreach ($this->files as $name => $content) { ?>
+          		<div class="span<?php echo (12/count($this->files)); ?>">
+            <h4><?php echo $name; ?></h4>
+            <?php echo $content['code']; ?>
+            </div>
+            <?php } ?>
+            </div>
+           
+          </div>
+          
+          
+          <h2>Fraude</h2>
+          
+          
+           <div class="accordion" id="accordion2">
+            <?php $first = true; foreach ($this->fraude as $document) { ?>
+            	<div class="accordion-group">
+                  <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapse<?php echo $document->id; ?>">
+                     <?php if ($document->status == 'passed') { ?>
+	              	<i class="icon-ok"></i>
+	              	<?php } else { ?>
+	              	<i class="icon-remove"></i>
+	              	<?php } ?>
+	              	 <span class="badge badge-warning"><?php echo $document->id; ?></span> <?php echo round($document->score * 100); ?>%
+                    </a>
+                  </div>
+                  <div id="collapse<?php echo $document->id; ?>" class="accordion-body collapse <?php echo ($first) ? 'in' : ''; ?>">
+                    <div class="accordion-inner">
+                    	<?php $geshi->set_source(trim(preg_replace('/\%(.*)(\r?\n)/', '', $document->{$name . '_t'} . "\n"))); ?>
+                    	
+                    	<div class="row-fluid">
+                    	
+                    	<div class="span6">
+                    		<h4>Verdacht van fraude (<a href="<?php echo $this->url(array('submissionId' => $document->id)); ?>"><?php echo $document->id; ?></a>)</h4>
+                      <?php echo $geshi->parse_code(); $first = true; ?>
+                      
+                      
+                      </div>
+                      
+                      <div class="span6">
+                      	<h4>Original (<?php echo $this->submissionId; ?>)</h4>
+                      	<?php $geshi->set_source(trim(preg_replace('/\%(.*)(\r?\n)/', '', $this->lastDocument . "\n"))); ?>
+                      	<?php echo $geshi->parse_code(); $first = true; ?>
+                      </div>
+                      
+                      </div>
+                      
+                      
+                      <h5>Difference</h5>
+                      <script type="text/javascript">
+                      	document.write(getDiff('<?php echo str_replace(array("\n", "\r"), array('\\' . "\n", ''), addslashes(preg_replace('/\%(.*)(\r?\n)/', '', $this->lastDocument . "\n"))); ?>', '<?php echo str_replace(array("\n", "\r"), array('\\' . "\n", ''), addslashes(preg_replace('/\%(.*)(\r?\n)/', '', $document->{$name . '_t'} . "\n"))); ?>'));
+                      	
+                      </script>
+                      
+                    </div>
+                    
+                    
+                    
+                    
+                  </div>
+                </div>
+            <?php } ?>
+            </div>
+          
+          <?php } ?>
+     
+        </div><!--/span-->
+      </div><!--/row-->
+

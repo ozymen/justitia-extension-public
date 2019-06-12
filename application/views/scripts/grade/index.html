@@ -1,0 +1,28 @@
+<h1>Becijfering</h1>
+
+<ul>
+	<?php foreach ($this->courses as $urlYear => $options) { ?>
+		<li><?php echo $urlYear; ?>
+			
+			<ul>
+			<?php foreach ($options as $urlCourse => $options2) { ?>
+				<li><?php echo $options2->name; ?>
+					
+					<ul>
+						<?php foreach ($options2->weeks as $urlWeek => $options3) { ?>
+							<li><?php echo $options3->name; ?>
+								
+								<ul>
+									<?php foreach ($options3->assignments as $urlAssignment => $options4) { ?>
+									<li><a href="/import/import/year/<?php echo $urlYear; ?>/course/<?php echo $urlCourse; ?>/week/<?php echo $urlWeek; ?>/assignment/<?php echo $urlAssignment; ?>"><?php echo $options4; ?></a></li>
+									<?php } ?>
+								</ul>
+							</li>
+						<?php } ?>
+					</ul>
+				</li>
+			<?php } ?>
+			</ul>
+		</li>
+	<?php } ?>
+</ul>
